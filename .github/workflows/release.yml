@@ -22,7 +22,7 @@ jobs:
 
       - name: Verify SHA256
         run: |
-          echo "5a6bc66fedea632a0e1c9c0e12dbd35118cfad617c9325cfe8e8ee0a65202e84  gongxu.apk" | sha256sum -c -
+          echo "c34b570aa8fd0b1ad5a80c9132c423626c7cc39e1946eed28846c00dd156555c  gongxu.apk" | sha256sum -c -
 
       - name: Create Release
         env:
