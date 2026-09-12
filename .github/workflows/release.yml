@@ -1,32 +1,29 @@
 name: Build APK Release
+
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Download APK
+      - uses: actions/checkout@v4
+
+      - name: Reassemble APK from base64 parts
         run: |
-          set +e
-          code=$(curl -sL -A "Mozilla/5.0 (Linux; Android 13)" -o gongxu.apk -w "%{http_code}" "https://aka.doubaocdn.com/s/iiivNjs5EO")
-          echo "first source HTTP: $code"
-          ls -la gongxu.apk
-          if [ "$code" != "200" ] || [ $(stat -c%s gongxu.apk 2>/dev/null || echo 0) -lt 10000 ]; then
-            code=$(curl -sL -A "Mozilla/5.0" -o gongxu.apk -w "%{http_code}" "https://aka.doubaocdn.com/s/X6nuiccEtb")
-            echo "second source HTTP: $code"
-          fi
-          ls -la gongxu.apk
-          python3 - <<'PYEOF'
-import zipfile
-z = zipfile.ZipFile('gongxu.apk')
-assert z.testzip() is None, 'zip corrupt'
-print('APK zip OK, entries:', len(z.namelist()))
-PYEOF
+          cat part1.txt part2.txt part3.txt part4.txt part5.txt part6.txt part7.txt part8.txt part9.txt part10.txt part11.txt part12.txt part12b.txt | tr -d '\n' | base64 -d > gongxu.apk
+          ls -l gongxu.apk
+          file gongxu.apk
+
+      - name: Verify SHA256
+        run: |
+          echo "5a6bc66fedea632a0e1c9c0e12dbd35118cfad617c9325cfe8e8ee0a65202e84  gongxu.apk" | sha256sum -c -
+
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v1.8 --yes --repo "$GITHUB_REPOSITORY" || true
-          gh release create v1.8 gongxu.apk --repo "$GITHUB_REPOSITORY" --title "工序记账本 v1.8" --notes "含自动备份（坚果云 + 手机下载文件夹）。安装后右下角⋯ → 自动备份 设置。" --latest
+          gh release delete v1.8 --yes || true
+          gh release create v1.8 gongxu.apk --title "工序记账本 v1.8" --notes "工序记账本 Android APK v1.8：每日工序+数量+单价记账，单价可后补，同工序自动回填，自定义周期截止结算，汇总工资总账，坚果云+下载文件夹自动备份。"
