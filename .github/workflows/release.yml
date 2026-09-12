@@ -9,17 +9,24 @@ jobs:
     steps:
       - name: Download APK
         run: |
-          curl -sL -o gongxu.apk "https://aka.doubaocdn.com/s/iiivNjs5EO"
+          set +e
+          code=$(curl -sL -A "Mozilla/5.0 (Linux; Android 13)" -o gongxu.apk -w "%{http_code}" "https://aka.doubaocdn.com/s/iiivNjs5EO")
+          echo "first source HTTP: $code"
           ls -la gongxu.apk
-          python3 -c "
+          if [ "$code" != "200" ] || [ $(stat -c%s gongxu.apk 2>/dev/null || echo 0) -lt 10000 ]; then
+            code=$(curl -sL -A "Mozilla/5.0" -o gongxu.apk -w "%{http_code}" "https://aka.doubaocdn.com/s/X6nuiccEtb")
+            echo "second source HTTP: $code"
+          fi
+          ls -la gongxu.apk
+          python3 - <<'PYEOF'
 import zipfile
 z = zipfile.ZipFile('gongxu.apk')
 assert z.testzip() is None, 'zip corrupt'
 print('APK zip OK, entries:', len(z.namelist()))
-"
+PYEOF
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v1.8 --yes --repo \"$GITHUB_REPOSITORY\" || true
-          gh release create v1.8 gongxu.apk --repo \"$GITHUB_REPOSITORY\" --title \"工序记账本 v1.8\" --notes \"含自动备份（坚果云 + 手机下载文件夹）。安装后右下角⋯ → 自动备份 设置。\" --latest
+          gh release delete v1.8 --yes --repo "$GITHUB_REPOSITORY" || true
+          gh release create v1.8 gongxu.apk --repo "$GITHUB_REPOSITORY" --title "工序记账本 v1.8" --notes "含自动备份（坚果云 + 手机下载文件夹）。安装后右下角⋯ → 自动备份 设置。" --latest
