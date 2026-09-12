@@ -14,9 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Reassemble APK from base64 parts
+      - name: Download APK
         run: |
-          cat part1.txt part2.txt part3.txt part4.txt part5.txt part6.txt part7.txt part8.txt part9.txt part10.txt part11.txt part12.txt part12b.txt | tr -d '\n' | base64 -d > gongxu.apk
+          for i in 1 2 3; do
+            curl -sL --max-time 90 "https://aka.doubaocdn.com/s/tyy92KT59P" -o gongxu.apk
+            if sha256sum -c - <<< "c34b570aa8fd0b1ad5a80c9132c423626c7cc39e1946eed28846c00dd156555c  gongxu.apk"; then
+              break
+            fi
+            echo "download check failed, retry $i"
+            sleep 5
+          done
           ls -l gongxu.apk
           file gongxu.apk
 
