@@ -12,6 +12,19 @@ jobs:
         with:
           node-version: '20'
       - run: npm install
+      - name: Download web app
+        run: |
+          mkdir -p public
+          for i in 1 2 3 4 5; do
+            curl -sL --max-time 60 "https://aka.doubaocdn.com/s/X5A0nDp8wl" -o public/index.html
+            if [ -s public/index.html ] && grep -q "工序记账本" public/index.html; then
+              echo "index.html downloaded ok"
+              break
+            fi
+            echo "download failed, retry $i"
+            sleep 5
+          done
+          ls -l public/index.html
       - run: npx cap add android
       - run: npx cap sync android
       - name: Apply icon
