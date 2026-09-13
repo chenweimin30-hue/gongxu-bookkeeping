@@ -1,0 +1,17 @@
+{
+  "name": "gongxu-bookkeeping",
+  "version": "1.8.0",
+  "description": "工序记账本：每日工序+数量+单价记账，单价可后补，同工序自动回填，自定义周期截止结算，汇总工资总账，坚果云+下载文件夹自动备份。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0"
+  }
+}

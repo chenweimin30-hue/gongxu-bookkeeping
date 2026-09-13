@@ -1,0 +1,39 @@
+name: Build Android APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npx cap add android
+      - run: npx cap sync android
+      - name: Apply icon
+        run: |
+          cd icons
+          for res in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            base64 -d < "${res}.b64" > "../android/app/src/main/res/mipmap-${res}/ic_launcher.png"
+          done
+          # 移除自适应图标，让系统直接使用 PNG 图标
+          rm -f ../android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          rm -f ../android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon --stacktrace
+        env:
+          GRADLE_OPTS: "-Xmx2048m -Dorg.gradle.daemon=false"
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk gongxu.apk
+          gh release delete v1.8 --yes || true
+          gh release create v1.8 gongxu.apk --title "工序记账本 v1.8" --notes "工序记账本 Android APK v1.8（Gradle 官方构建，与游戏同套打包方式）：每日工序+数量+单价记账，单价可后补，同工序自动回填，自定义周期截止结算，汇总工资总账，坚果云+下载文件夹自动备份。"
